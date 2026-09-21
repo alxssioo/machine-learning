@@ -29,7 +29,7 @@ model = DuelingDQN()
 model.load_state_dict(torch.load("models/dueling_seed3042_best.pth"))
 model.eval()
 
-seed = int(sys.argv[1])
+seed = int(sys.argv[1]) if len(sys.argv) > 1 else 30013
 
 env = gym.make("LunarLander-v3", render_mode="human")
 

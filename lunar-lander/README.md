@@ -136,6 +136,8 @@ lunar-lander/
 
 ## Setup
 
+Tested with Python 3.13. `requirements.txt` pins the exact versions the results were produced with.
+
 ```bash
 python -m venv .venv
 source .venv/bin/activate
@@ -184,7 +186,7 @@ This tests every `models/{method}_seed{seed}_best.pth` on the 200 test starts, p
 python watch.py 30013
 ```
 
-This opens a window and flies one episode, using the given seed as the starting situation. It loads `models/dueling_seed3042_best.pth`. To watch another network, change the path; baseline models also need the plain `DQN` class.
+This opens a window and flies one episode, using the given seed as the starting situation (30013 if you leave it out). It loads `models/dueling_seed3042_best.pth`. To watch another network, change the path; baseline models also need the plain `DQN` class.
 
 Seeds worth trying with the default network:
 

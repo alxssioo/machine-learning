@@ -30,7 +30,7 @@ class DQN(nn.Module):
     def forward(self, state):
         return self.network(state)
 
-def evaluate(model, env, num_seeds=20, start_seed=10000):
+def evaluate(model, env, num_seeds=100, start_seed=10000):
     rewards = []
 
     for seed in range(start_seed, start_seed + num_seeds):
@@ -61,7 +61,7 @@ target_model.load_state_dict(model.state_dict())
 target_model.eval()
 
 loss_fn = nn.SmoothL1Loss()
-optimizer = torch.optim.Adam(model.parameters(), lr=5*1e-4)
+optimizer = torch.optim.Adam(model.parameters(), lr=5e-4)
 replay_buffer = deque(maxlen=100000)
 batch_size = 64
 learning_starts = 1000
@@ -143,7 +143,7 @@ for episode in range(num_episodes):
         target_model.load_state_dict(model.state_dict())
 
     if (episode + 1) % 100 == 0:
-        eval_reward = evaluate(model, eval_env, num_seeds=100)
+        eval_reward = evaluate(model, eval_env)
         eval_rewards.append((episode + 1, eval_reward))
 
         print(f"Evaluation: {eval_reward:.1f}")
