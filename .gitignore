@@ -1,2 +1,3 @@
-/lunar-lander/logs/
-/lunar-lander/models/
+.idea
+lunar-lander/.venv
+__pycache__/
