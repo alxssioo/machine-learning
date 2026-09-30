@@ -1,0 +1,36 @@
+{
+  "dqn|0|best": {
+    "file": "models/dqn_seed0_best.pth",
+    "hands": 100000,
+    "mean": -0.05878,
+    "ci95": 0.005899322961495293,
+    "win_pct": 42.53,
+    "draw_pct": 9.062000000000001,
+    "loss_pct": 48.408
+  },
+  "dqn|0|final": {
+    "file": "dqn_seed0.pth",
+    "hands": 100000,
+    "mean": -0.05927,
+    "ci95": 0.005888477641098214,
+    "win_pct": 42.342,
+    "draw_pct": 9.389,
+    "loss_pct": 48.269
+  },
+  "reference|always stick": {
+    "hands": 100000,
+    "mean": -0.19004,
+    "ci95": 0.005931922428297119,
+    "win_pct": 38.102000000000004,
+    "draw_pct": 4.792,
+    "loss_pct": 57.106
+  },
+  "reference|hit below 17": {
+    "hands": 100000,
+    "mean": -0.08265,
+    "ci95": 0.005853608097544624,
+    "win_pct": 40.806,
+    "draw_pct": 10.123,
+    "loss_pct": 49.071
+  }
+}
