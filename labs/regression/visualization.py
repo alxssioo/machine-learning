@@ -1,18 +1,16 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from scipy import stats
 
 
 def plot_univariate(x, y, model):
     """Plot observations, fitted regression line, and residuals."""
     predictions = model.predict(x)
-
     indices = np.argsort(x)
-
     plt.figure()
 
     # Observed samples
     plt.scatter(x, y, alpha=0.6, label="Samples")
-
     # Fitted regression line
     plt.plot(
         x[indices],
@@ -30,7 +28,6 @@ def plot_univariate(x, y, model):
         linestyles="dashed",
         alpha=0.5
     )
-
     plt.xlabel("X")
     plt.ylabel("Y")
     plt.title("Univariate Linear Regression")
@@ -133,4 +130,32 @@ def plot_cost_history(model):
     plt.xlabel("Iteration")
     plt.ylabel("Cost")
     plt.title("Gradient Descent Convergence")
+    plt.show()
+
+def plot_qq(y, predictions):
+    """Q-Q plot to assess residual normality."""
+    residuals = np.asarray(y) - np.asarray(predictions)
+    stats.probplot(residuals, dist="norm", plot=plt)
+
+    plt.title("Q-Q Plot of Residuals")
+    plt.show()
+
+
+def plot_standardized_residuals(y, predictions):
+    """Plot standardized residuals against predicted values."""
+    residuals = np.asarray(y) - np.asarray(predictions)
+
+    std = np.std(residuals)
+
+    if std == 0:
+        raise ValueError("Cannot standardize residuals with zero variance")
+
+    standardized = residuals / std
+
+    plt.scatter(predictions, standardized, alpha=0.6)
+    plt.axhline(0, color="red", linestyle="--")
+
+    plt.xlabel("Predicted values")
+    plt.ylabel("Standardized residuals")
+    plt.title("Standardized Residual Plot")
     plt.show()

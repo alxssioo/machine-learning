@@ -4,6 +4,8 @@ import matplotlib.pyplot as plt
 from data import generate_univariate_data, generate_multivariate_data
 from univariate import UnivariateLinearRegression
 from multivariate import MultivariateLinearRegression
+from visualization import plot_qq, plot_standardized_residuals
+from evaluation import evaluate
 
 
 def run_univariate():
@@ -59,12 +61,22 @@ def run_univariate():
     plt.show()
 
     # Plot gradient descent convergence
+    plt.figure()
     plt.plot(model_gd.cost_history)
 
     plt.xlabel("Iteration")
     plt.ylabel("Cost")
     plt.title("Univariate Gradient Descent")
     plt.show()
+
+    plot_qq(y, predictions)
+    plot_standardized_residuals(y, predictions)
+
+    print("\nClosed-form evaluation:")
+    evaluate(y, model.predict(x))
+
+    print("\nGradient descent evaluation:")
+    evaluate(y, model_gd.predict(x))
 
 
 def run_multivariate():
@@ -117,9 +129,9 @@ def run_multivariate():
         X2.ravel()
     ])
 
-    predictions = model.predict(grid).reshape(X1.shape)
+    grid_predictions = model.predict(grid).reshape(X1.shape)
 
-    ax.plot_surface(X1, X2, predictions, alpha=0.4)
+    ax.plot_surface(X1, X2, grid_predictions, alpha=0.4)
 
     ax.set_xlabel("X1")
     ax.set_ylabel("X2")
@@ -129,6 +141,7 @@ def run_multivariate():
     plt.show()
 
     # Plot gradient descent convergence
+    plt.figure()
     plt.plot(model_gd.cost_history)
 
     plt.xlabel("Iteration")
@@ -136,6 +149,16 @@ def run_multivariate():
     plt.title("Multivariate Gradient Descent")
     plt.show()
 
+    predictions = model.predict(X)
+
+    plot_qq(y, predictions)
+    plot_standardized_residuals(y, predictions)
+
+    print("\nNormal equation evaluation:")
+    evaluate(y, model.predict(X))
+
+    print("\nGradient descent evaluation:")
+    evaluate(y, model_gd.predict(X))
 
 if __name__ == "__main__":
     run_univariate()
