@@ -6,6 +6,7 @@ from univariate import UnivariateLinearRegression
 from multivariate import MultivariateLinearRegression
 from visualization import plot_qq, plot_standardized_residuals
 from evaluation import evaluate
+from visualization import plot_polynomial
 
 
 def run_univariate():
@@ -160,6 +161,11 @@ def run_multivariate():
     print("\nGradient descent evaluation:")
     evaluate(y, model_gd.predict(X))
 
+def run_polynomial():
+    print("\n--- Polynomial Regression ---")
+    plot_polynomial()
+
 if __name__ == "__main__":
     run_univariate()
     run_multivariate()
+    run_polynomial()

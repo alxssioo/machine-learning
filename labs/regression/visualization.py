@@ -1,6 +1,9 @@
 import numpy as np
 import matplotlib.pyplot as plt
+
 from scipy import stats
+from polynomial import PolynomialRegression
+from evaluation import r2_score
 
 
 def plot_univariate(x, y, model):
@@ -158,4 +161,49 @@ def plot_standardized_residuals(y, predictions):
     plt.xlabel("Predicted values")
     plt.ylabel("Standardized residuals")
     plt.title("Standardized Residual Plot")
+    plt.show()
+
+def plot_polynomial():
+    rng = np.random.default_rng(9)
+
+    x = np.sort(rng.uniform(-1, 1, size=40))
+    true = np.sin(2.5 * x)
+    y = true + rng.normal(0, 0.12, size=x.size)
+
+    xs = np.linspace(-1, 1, 300)
+
+    fig, axes = plt.subplots(1, 3, figsize=(10, 3))
+
+    for ax, degree in zip(axes, [1, 3, 9]):
+        model = PolynomialRegression(degree=degree).fit(
+            x.reshape(-1, 1), y
+        )
+
+        ax.scatter(x, y, s=14, alpha=0.6)
+
+        ax.plot(
+            xs,
+            np.sin(2.5 * xs),
+            "k--",
+            lw=1,
+            label="true"
+        )
+
+        ax.plot(
+            xs,
+            model.predict(xs.reshape(-1, 1)),
+            "r-",
+            lw=2,
+            label="fit"
+        )
+
+        ax.set_title(
+            f"degree {degree}, "
+            f"$R^2$={r2_score(y, model.predict(x.reshape(-1, 1))):.3f}"
+        )
+
+        ax.set_ylim(-1.8, 1.8)
+        ax.legend()
+
+    fig.tight_layout()
     plt.show()
