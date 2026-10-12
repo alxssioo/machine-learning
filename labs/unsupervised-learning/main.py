@@ -84,6 +84,8 @@ def plotDBSCAN(dbscan: DBSCAN, samples: np.ndarray):
 
 
 chosenLearning = input("Chose learning algorithm: DBSCAN or Kmeans ").lower()
+if chosenLearning not in ("kmeans", "dbscan"):
+    raise ValueError("Choose either kmeans or dbscan")
 epsilon = 0.1
 distance = euclidean_distance
 
@@ -95,8 +97,7 @@ if chosenLearning == "kmeans":
         distance = manhattan_distance
     else:
         raise ValueError("Unknown distance")
-else:
-    epsilon = float(input("Chose epsilon for DBSCAN: "))
+
 # Generate 100 random samples with 0 <= x < 10 and 0 <= y < 10
 samples = np.random.uniform(
     low=0,
@@ -113,41 +114,62 @@ if chosenLearning == "dbscan":
 
     samples = np.vstack([cluster1, cluster2, cluster3])
 
+    epsilon = float(input("Choose epsilon: "))
+    min_pts = int(input("Choose minPts: "))
+
     dbscan = DBSCAN(
         eps=epsilon,
-        min_pts=5
+        min_pts=min_pts
     ).fit(samples)
 
     plotDBSCAN(dbscan, samples)
 else:
-    # Create a K-Means model with 3 clusters and the selected distance function
-    # Fit the model to the samples:
-    # initialize centroids -> assign points -> update centroids -> repeat until convergence
+    # Evaluate different values of K
+    ks = np.arange(2, min(11, len(samples)))
+
+    scores = silhouette_curve(
+        samples,
+        ks,
+        distance=distance
+    )
+
+    # Select K with the highest silhouette score
+    best_k = int(ks[np.argmax(scores)])
+
+    print(f"Optimal K: {best_k}")
+    print(f"Silhouette score: {np.max(scores):.4f}")
+
+    # Train K-Means with the selected K
     kmeans = KMeans(
-        n_clusters=3,
+        n_clusters=best_k,
         distance=distance
     ).fit(samples)
+
+    # Elbow Method
+    ks_elbow = np.arange(1, min(11, len(samples) + 1))
+
+    potentials = potential_curve(
+        samples,
+        ks_elbow,
+        distance=distance
+    )
+
+    plt.plot(ks_elbow, potentials, marker="o")
+    plt.xlabel("Number of clusters")
+    plt.ylabel("Potential")
+    plt.title("Elbow Method")
+    plt.show()
+
+    # Silhouette Analysis (reuse calculated scores)
+    plt.plot(ks, scores, marker="o")
+
+    # Mark the optimal K
+    plt.axvline(best_k, color="red", linestyle="--", label=f"Optimal K = {best_k}")
+
+    plt.xlabel("Number of clusters")
+    plt.ylabel("Silhouette Score")
+    plt.title("Silhouette Analysis")
+    plt.legend()
+    plt.show()
+
     plotKmean()
-
-ks_elbow = range(1, 11)
-ks_silhouette = range(2, 11)
-
-plt.plot(
-    ks_elbow,
-    potential_curve(samples, ks_elbow, distance=distance),
-    marker="o"
-)
-plt.xlabel("Number of clusters")
-plt.ylabel("Potential")
-plt.title("Elbow Method")
-plt.show()
-
-plt.plot(
-    ks_silhouette,
-    silhouette_curve(samples, ks_silhouette, distance=distance),
-    marker="o"
-)
-plt.xlabel("Number of clusters")
-plt.ylabel("Silhouette Score")
-plt.title("Silhouette Analysis")
-plt.show()

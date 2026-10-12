@@ -6,6 +6,11 @@ class DBSCAN:
     `self.labels` holds the result (-1 = noise, clusters = 0, 1, 2, ...)."""
 
     def __init__(self, eps, min_pts, distance=None):
+        if not isinstance(min_pts, (int, np.integer)) or isinstance(min_pts, (bool, np.bool_)) or min_pts < 1:
+            raise ValueError("min_pts must be a positive integer")
+
+        if not np.isfinite(eps) or eps <= 0:
+            raise ValueError("eps must be a positive finite number")
         self.eps = eps
         self.min_pts = min_pts
         self.distance = distance if distance is not None else euclidean_distance
