@@ -5,6 +5,8 @@ import matplotlib as mpl
 from kmean import KMeans
 from dbscan import DBSCAN
 from distances import manhattan_distance, euclidean_distance
+from evaluation import potential_curve, silhouette_curve
+
 
 def plotKmean():
     # Print the final centroid coordinates
@@ -57,6 +59,7 @@ def plotKmean():
     plt.xlabel("x")
     plt.ylabel("y")
     plt.show()
+
 
 def plotDBSCAN(dbscan: DBSCAN, samples: np.ndarray):
     labels = dbscan.labels
@@ -126,3 +129,25 @@ else:
     ).fit(samples)
     plotKmean()
 
+ks_elbow = range(1, 11)
+ks_silhouette = range(2, 11)
+
+plt.plot(
+    ks_elbow,
+    potential_curve(samples, ks_elbow, distance=distance),
+    marker="o"
+)
+plt.xlabel("Number of clusters")
+plt.ylabel("Potential")
+plt.title("Elbow Method")
+plt.show()
+
+plt.plot(
+    ks_silhouette,
+    silhouette_curve(samples, ks_silhouette, distance=distance),
+    marker="o"
+)
+plt.xlabel("Number of clusters")
+plt.ylabel("Silhouette Score")
+plt.title("Silhouette Analysis")
+plt.show()
