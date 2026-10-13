@@ -4,9 +4,18 @@ import matplotlib.pyplot as plt
 from data import generate_univariate_data, generate_multivariate_data
 from univariate import UnivariateLinearRegression
 from multivariate import MultivariateLinearRegression
-from visualization import plot_qq, plot_standardized_residuals
+from visualization import (
+    plot_qq,
+    plot_standardized_residuals,
+    plot_regression_assumptions,
+    plot_overfitting,
+    plot_regularization,
+    plot_regularization_search,
+    plot_hyperparameter_search
+)
 from evaluation import evaluate
 from visualization import plot_polynomial
+from hyperparameter import grid_search
 
 
 def run_univariate():
@@ -161,11 +170,64 @@ def run_multivariate():
     print("\nGradient descent evaluation:")
     evaluate(y, model_gd.predict(X))
 
+
 def run_polynomial():
     print("\n--- Polynomial Regression ---")
     plot_polynomial()
+
+
+def run_regression_assumptions():
+    print("\n--- Regression Assumptions ---")
+    plot_regression_assumptions()
+
+
+def run_model_complexity():
+    print("\n--- Underfitting and Overfitting ---")
+    plot_overfitting()
+
+    print("\n--- L2 Regularization ---")
+    plot_regularization()
+
+    print("\n--- Regularization Hyperparameter Search ---")
+    plot_regularization_search()
+
+
+def run_hyperparameter_search():
+    print("\n--- Hyperparameter Tuning ---")
+
+    rng = np.random.default_rng(42)
+    x = rng.uniform(-1, 1, size=100)
+    y = (
+            1.0
+            + 2.0 * x
+            - 3.0 * x ** 2
+            + 0.5 * x ** 3
+            + rng.normal(0, 0.2, size=len(x))
+    )
+
+    X = x.reshape(-1, 1)
+    degrees = range(1, 11)
+    lambdas = np.concatenate([
+        [0.0],
+        np.logspace(-6, 2, 30)
+    ])
+
+    model, results = grid_search(
+        X,
+        y,
+        degrees,
+        lambdas
+    )
+
+    print(f"Best degree: {model.degree}")
+    print(f"Best lambda: {model.regularizer:.6f}")
+    plot_hyperparameter_search(results)
+
 
 if __name__ == "__main__":
     run_univariate()
     run_multivariate()
     run_polynomial()
+    run_regression_assumptions()
+    run_model_complexity()
+    run_hyperparameter_search()

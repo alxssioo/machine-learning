@@ -3,7 +3,9 @@ import matplotlib.pyplot as plt
 
 from scipy import stats
 from polynomial import PolynomialRegression
-from evaluation import r2_score
+from evaluation import r2_score, rmsd
+from data import generate_assumption_datasets
+from univariate import UnivariateLinearRegression
 
 
 def plot_univariate(x, y, model):
@@ -135,6 +137,7 @@ def plot_cost_history(model):
     plt.title("Gradient Descent Convergence")
     plt.show()
 
+
 def plot_qq(y, predictions):
     """Q-Q plot to assess residual normality."""
     residuals = np.asarray(y) - np.asarray(predictions)
@@ -162,6 +165,7 @@ def plot_standardized_residuals(y, predictions):
     plt.ylabel("Standardized residuals")
     plt.title("Standardized Residual Plot")
     plt.show()
+
 
 def plot_polynomial():
     rng = np.random.default_rng(9)
@@ -206,4 +210,236 @@ def plot_polynomial():
         ax.legend()
 
     fig.tight_layout()
+    plt.show()
+
+
+def plot_regression_assumptions():
+    datasets = generate_assumption_datasets()
+
+    fig, axes = plt.subplots(2, 2, figsize=(11, 8))
+
+    for ax, (name, (x, y)) in zip(axes.flat, datasets.items()):
+        model = UnivariateLinearRegression().fit(x, y)
+
+        predictions = model.predict(x)
+        residuals = y - predictions
+
+        if name == "Normality":
+            ax.hist(residuals, bins=25)
+            ax.set_xlabel("Residual")
+            ax.set_ylabel("Count")
+
+        else:
+            ax.scatter(x, residuals, s=12)
+            ax.axhline(0, color="red", linestyle="--")
+            ax.set_xlabel("X")
+            ax.set_ylabel("Residual")
+
+        ax.set_title(f"{name} violated")
+
+    fig.tight_layout()
+    plt.show()
+
+
+def plot_overfitting():
+    rng = np.random.default_rng(9)
+
+    x = np.sort(rng.uniform(-1, 1, size=40))
+    y = np.sin(2.5 * x) + rng.normal(0, 0.12, size=x.size)
+
+    # Split into training and validation data
+    indices = rng.permutation(len(x))
+    split = int(0.7 * len(x))
+
+    train_idx = indices[:split]
+    val_idx = indices[split:]
+
+    x_train, y_train = x[train_idx], y[train_idx]
+    x_val, y_val = x[val_idx], y[val_idx]
+
+    xs = np.linspace(-1, 1, 300)
+
+    fig, axes = plt.subplots(1, 3, figsize=(12, 4))
+
+    for ax, degree in zip(axes, [1, 3, 12]):
+        model = PolynomialRegression(degree=degree)
+        model.fit(x_train.reshape(-1, 1), y_train)
+
+        train_error = rmsd(
+            y_train,
+            model.predict(x_train.reshape(-1, 1))
+        )
+
+        val_error = rmsd(
+            y_val,
+            model.predict(x_val.reshape(-1, 1))
+        )
+
+        ax.scatter(x_train, y_train, label="Training")
+        ax.scatter(x_val, y_val, label="Validation")
+
+        ax.plot(
+            xs,
+            np.sin(2.5 * xs),
+            "k--",
+            label="True function"
+        )
+
+        ax.plot(
+            xs,
+            model.predict(xs.reshape(-1, 1)),
+            "r-",
+            label="Prediction"
+        )
+
+        ax.set_title(
+            f"Degree {degree}\n"
+            f"Train RMSD: {train_error:.3f}\n"
+            f"Val RMSD: {val_error:.3f}"
+        )
+
+        ax.set_ylim(-1.8, 1.8)
+        ax.legend()
+
+    fig.tight_layout()
+    plt.show()
+
+
+def plot_regularization():
+    rng = np.random.default_rng(11)
+
+    x = np.sort(rng.uniform(-1, 1, size=18))
+    y = np.sin(3.0 * x) + rng.normal(0, 0.15, size=x.size)
+
+    xs = np.linspace(-1, 1, 300)
+
+    fig, axes = plt.subplots(1, 3, figsize=(12, 4))
+
+    for ax, lam, label in [
+        (axes[0], 0.0, "No regularization"),
+        (axes[1], 0.01, "Moderate regularization"),
+        (axes[2], 30.0, "Strong regularization")
+    ]:
+        model = PolynomialRegression(
+            degree=12,
+            regularizer=lam
+        )
+
+        model.fit(x.reshape(-1, 1), y)
+
+        ax.scatter(x, y, label="Samples")
+
+        ax.plot(
+            xs,
+            np.sin(3.0 * xs),
+            "k--",
+            label="True function"
+        )
+
+        ax.plot(
+            xs,
+            model.predict(xs.reshape(-1, 1)),
+            "r-",
+            label="Prediction"
+        )
+
+        ax.set_title(f"λ = {lam}\n{label}")
+        ax.set_ylim(-2, 2)
+        ax.legend()
+
+    fig.tight_layout()
+    plt.show()
+
+
+def plot_regularization_search():
+    rng = np.random.default_rng(11)
+
+    x = np.sort(rng.uniform(-1, 1, size=40))
+    y = np.sin(3.0 * x) + rng.normal(0, 0.15, size=x.size)
+
+    indices = rng.permutation(len(x))
+    split = int(0.8 * len(x))
+
+    tr = indices[:split]
+    val = indices[split:]
+
+    lambdas = np.logspace(-6, 2, 40)
+
+    train_errors = []
+    val_errors = []
+
+    for lam in lambdas:
+        model = PolynomialRegression(
+            degree=9,
+            regularizer=lam
+        )
+
+        model.fit(x[tr].reshape(-1, 1), y[tr])
+
+        train_errors.append(
+            rmsd(y[tr], model.predict(x[tr].reshape(-1, 1)))
+        )
+
+        val_errors.append(
+            rmsd(y[val], model.predict(x[val].reshape(-1, 1)))
+        )
+
+    best_idx = np.argmin(val_errors)
+    best_lambda = lambdas[best_idx]
+
+    fig, ax = plt.subplots(figsize=(8, 5))
+
+    ax.plot(lambdas, train_errors, label="Training RMSD")
+    ax.plot(lambdas, val_errors, label="Validation RMSD")
+
+    ax.axvline(
+        best_lambda,
+        linestyle="--",
+        label=f"Best λ = {best_lambda:.5f}"
+    )
+
+    ax.set_xscale("log")
+    ax.set_xlabel("λ")
+    ax.set_ylabel("RMSD")
+    ax.set_title("Choosing Regularization Strength")
+    ax.legend()
+
+    plt.show()
+
+    print(f"Best lambda: {best_lambda:.6f}")
+    print(f"Validation RMSD: {val_errors[best_idx]:.4f}")
+
+
+def plot_hyperparameter_search(results):
+    degrees = sorted(set(d for d, lam, error in results))
+    lambdas = sorted(set(lam for d, lam, error in results))
+
+    fig, ax = plt.subplots(figsize=(9, 6))
+
+    for degree in degrees:
+        errors = [
+            error
+            for d, lam, error in results
+            if d == degree
+        ]
+
+        line, = ax.plot(
+            lambdas[1:],
+            errors[1:],
+            label=f"Degree {degree}"
+        )
+
+        ax.scatter(
+            [lambdas[1]],
+            [errors[0]],
+            marker="x",
+            color=line.get_color()
+        )
+
+    ax.set_xscale("log")
+    ax.set_xlabel("Regularization λ")
+    ax.set_ylabel("Validation RMSD")
+    ax.set_title("Polynomial Regression Hyperparameter Search")
+    ax.legend()
+
     plt.show()
